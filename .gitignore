@@ -1,0 +1,16 @@
+venv
+*/outputs/
+*.npy
+*.npz
+*.png
+*.csv
+__pycache__/
+venv/
+outputs/
+*.npy
+*.npz
+*.png
+*.csv
+__pycache__/
+*.pyc
+.DS_Store

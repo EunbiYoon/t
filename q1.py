@@ -1,0 +1,115 @@
+# q1.py
+# Part 2 — Q1: Hyperparameter Study (Compute first, plot later)
+# Stage 1: run all ES experiments and save .npy
+# Stage 2: load all mean/std results and plot them together
+# Shows both outer (config) and inner (iteration) progress bars.
+
+import os
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")  # Safe backend for Colima/headless
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+from algorithm import ESConfig
+from utils import (
+    ensure_dir, timestamp, mean_std_over_runs
+)
+from main import (
+    run_experiment, 
+)
+
+# ===============================================================
+# User-adjustable constants
+# ===============================================================
+OUTDIR_BASE = "outputs"
+NEURONS = (3, 2)
+RUNS_PER_CONFIG = 1
+ITERS = 1 #40
+N_EVAL = 15 #15
+K = 5
+
+# ===============================================================
+# Configurations (P, sigma, alpha) to test
+# ===============================================================
+CONFIGS = [
+    ("P30_s0.10_a0.10", ESConfig(P=30, K=K, sigma=0.10, alpha=0.10,
+                                 N_eval=N_EVAL, iters=ITERS)),
+    ("P50_s0.20_a0.10", ESConfig(P=50, K=K, sigma=0.20, alpha=0.10,
+                                 N_eval=N_EVAL, iters=ITERS)),
+    ("P50_s0.25_a0.05", ESConfig(P=50, K=K, sigma=0.25, alpha=0.05,
+                                 N_eval=N_EVAL, iters=ITERS)),
+    ("P60_s0.15_a0.15", ESConfig(P=60, K=K, sigma=0.15, alpha=0.15,
+                                 N_eval=N_EVAL, iters=ITERS)),
+    ("P50_s0.30_a0.10", ESConfig(P=50, K=K, sigma=0.30, alpha=0.10,
+                                 N_eval=N_EVAL, iters=ITERS)),
+]
+# ===============================================================
+
+
+def main():
+    outdir = os.path.join(OUTDIR_BASE, "q1_" + timestamp())
+    ensure_dir(outdir)
+
+    print(f"\n[Q1] Output directory: {outdir}")
+    print("[Q1] Stage 1 — Running experiments...\n")
+
+    # =====================
+    # Stage 1: Run & Save
+    # =====================
+    for name, cfg in CONFIGS:
+        print(f"▶ Starting config: {name} (P={cfg.P}, σ={cfg.sigma}, α={cfg.alpha})")
+        runs = []
+
+        # tqdm: outer progress (5 runs)
+        for hist in tqdm(run_experiment(name, cfg, neurons=NEURONS, runs=RUNS_PER_CONFIG),
+                        desc=f"{name}", ncols=80):
+            runs.append(hist)
+
+        # Compute and save results
+        mean, std = mean_std_over_runs(runs)
+        summary_path = os.path.join(outdir, f"{name}.npy")
+        print(f"✅ Saved mean/std and raw runs for {name}\n")
+
+    print("\n✅ Stage 1 complete: all results computed and saved.\n")
+
+    # =====================
+    # Stage 2: Plotting
+    # =====================
+    print("[Q1] Stage 2 — Loading saved results and plotting...\n")
+
+    plt.figure(figsize=(8, 6))
+    for name, _ in CONFIGS:
+        mean_path = os.path.join(outdir, f"{name}_mean.npy")
+        std_path = os.path.join(outdir, f"{name}_std.npy")
+
+        if not os.path.exists(mean_path):
+            print(f"⚠️ Skipping {name}: mean.npy not found")
+            continue
+
+        mean = np.load(mean_path)
+        std = np.load(std_path)
+        x = np.arange(1, mean.shape[0] + 1)
+        plt.plot(x, mean[:, 0], label=name)
+        plt.fill_between(x, mean[:, 0] - std[:, 0],
+                         mean[:, 0] + std[:, 0], alpha=0.15)
+        print(f"✅ Added curve for {name}")
+
+    plt.xlabel("ES Iteration")
+    plt.ylabel("Return (higher is better)")
+    plt.title(f"Q1: Hyperparameter Study — {RUNS_PER_CONFIG} runs each")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    out_png = os.path.join(outdir, "q1_study_curves.png")
+    plt.savefig(out_png, dpi=150)
+    plt.close()
+
+    print("\n✅ [Q1] All done.")
+    print(f"===> Final combined plot saved to: {out_png}")
+    print(f"===> Directory: {outdir}\n")
+
+
+if __name__ == "__main__":
+    main()
