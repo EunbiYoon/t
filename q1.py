@@ -16,7 +16,7 @@ from utils import (
     ensure_dir, timestamp, mean_std_over_runs
 )
 from main import (
-    run_experiment, 
+    run_experiment
 )
 
 # ===============================================================
@@ -25,15 +25,15 @@ from main import (
 OUTDIR_BASE = "outputs"
 NEURONS = (3, 2)
 RUNS_PER_CONFIG = 1
-ITERS = 1 #40
-N_EVAL = 3 #15
+ITERS = 3 #40
+N_EVAL = 5 #15
 K = 5
 
 # ===============================================================
 # Configurations (P, sigma, alpha) to test
 # ===============================================================
 CONFIGS = [
-    ("P30_s0.10_a0.10", ESConfig(P=30, K=K, sigma=0.10, alpha=0.10,
+    ("P40_s0.10_a0.10", ESConfig(P=40, K=K, sigma=0.10, alpha=0.10,
                                  N_eval=N_EVAL, iters=ITERS))
     # ("P50_s0.20_a0.10", ESConfig(P=50, K=K, sigma=0.20, alpha=0.10,
     #                              N_eval=N_EVAL, iters=ITERS)),
@@ -59,23 +59,13 @@ def main():
     # =====================
     for name, cfg in CONFIGS:
         print(f"▶ Starting config: {name} (P={cfg.P}, σ={cfg.sigma}, α={cfg.alpha})")
+        runs = []
 
-        # run_experiment는 (runs_list, mean, std)를 반환하고
-        # outdir가 있으면 {name}_runs.npz / {name}_mean.npy / {name}_std.npy 를 저장합니다.
-        runs_list, mean, std = run_experiment(
-            name,
-            cfg,
-            neurons=NEURONS,
-            runs=RUNS_PER_CONFIG,
-            outdir=outdir,     # 저장할 디렉토리
-            save=True,         # 저장 on
-            progress=True      # 내부 tqdm on
-        )
+        # tqdm: outer progress (5 runs)
+        for hist in tqdm(run_experiment(name, cfg, neurons=NEURONS, runs=RUNS_PER_CONFIG,outdir=outdir, save=True, progress=True)):
+            runs.append(hist)
 
-        # (선택) 메모리에서도 바로 집계값 재확인하고 싶다면:
-        # mean2, std2 = mean_std_over_runs(runs_list)
-
-        print(f"✅ Saved mean/std and raw runs for {name}\n")
+    print("\n✅ Stage 1 complete: all results computed and saved.\n")
 
     # =====================
     # Stage 2: Plotting
@@ -86,7 +76,6 @@ def main():
     for name, _ in CONFIGS:
         mean_path = os.path.join(outdir, f"{name}_mean.npy")
         std_path = os.path.join(outdir, f"{name}_std.npy")
-        run_path = os.path.join(outdir, f"{name}_run.npy")
 
         if not os.path.exists(mean_path):
             print(f"⚠️ Skipping {name}: mean.npy not found")
@@ -94,11 +83,10 @@ def main():
 
         mean = np.load(mean_path)
         std = np.load(std_path)
-        run = np.load(run_path)
-        x = np.arange(1, run.shape[0] + 1)
-        plt.plot(x, run[:, 0], label=name)
-        # plt.fill_between(x, mean[:, 0] - std[:, 0],
-        #                  mean[:, 0] + std[:, 0], alpha=0.15)
+        x = np.arange(1, mean.shape[0] + 1)
+        plt.plot(x, mean[:, 0], label=name)
+        plt.fill_between(x, mean[:, 0] - std[:, 0],
+                         mean[:, 0] + std[:, 0], alpha=0.15)
         print(f"✅ Added curve for {name}")
 
     plt.xlabel("ES Iteration")

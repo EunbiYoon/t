@@ -67,7 +67,6 @@ def es_step(policy: PolicyNet, cfg: ESConfig) -> Tuple[float, float]:
     n = theta.size
 
     J_curr = estimate_J(policy, N=cfg.N_eval)
-    print(J_curr)
 
     # ✅ 전역 RNG (main.py에서 np.random.seed으로 고정됨)
     eps = np.random.standard_normal(size=(cfg.P, n)).astype(np.float32)
@@ -77,12 +76,14 @@ def es_step(policy: PolicyNet, cfg: ESConfig) -> Tuple[float, float]:
         theta_i = theta + cfg.sigma * eps[i]
         policy.set_policy_parameters(theta_i)
         J_i = estimate_J(policy, N=cfg.N_eval)
+        print(J_i)
         cand.append((float(J_i), eps[i].copy()))
 
     # Sort descending
     cand.sort(key=lambda x: x[0], reverse=True)
     top = cand[:cfg.K]
     J_best = top[0][0]
+    print(J_best)
 
     # Gradient estimate and update
     grad = np.zeros_like(theta, dtype=np.float32)

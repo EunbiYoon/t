@@ -1,55 +1,34 @@
-
 # utils.py
-from __future__ import annotations
-import os, time
+import os
 import numpy as np
-from typing import List,Tuple
+from datetime import datetime
+
 def ensure_dir(path: str):
-    if path is None:
-        return
-    os.makedirs(path, exist_ok=True)
+    """Create directory if it does not exist."""
+    if path and not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
 
 def timestamp() -> str:
-    return time.strftime("%Y%m%d-%H%M%S")
+    """Return current timestamp string, e.g. 2025-10-17_02-15-30."""
+    return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-def mean_std_over_runs(histories: List[np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+def mean_std_over_runs(runs_list):
     """
-    Compute mean and std learning curves over multiple ES runs.
-
-    Parameters
-    ----------
-    histories : list of np.ndarray
-        Each element is a (T,2) array, columns = [J_curr, J_best].
-
-    Returns
-    -------
-    mean : np.ndarray
-        Mean over runs, shape (T,2)
-    std : np.ndarray
-        Std over runs, shape (T,2)
+    runs_list: list of arrays, each shape (T_i, 2) with columns [J_curr, J_best]
+    The T_i may differ; we align to the minimum T to stack safely.
     """
-    if not histories:
-        raise ValueError("histories is empty (no runs provided)")
+    if len(runs_list) == 0:
+        raise ValueError("runs_list is empty")
 
-    # Validate and normalize
-    valid = []
-    for i, h in enumerate(histories):
-        arr = np.asarray(h)
-        if arr.ndim != 2 or arr.shape[1] < 2:
-            raise ValueError(
-                f"histories[{i}] has invalid shape {getattr(arr, 'shape', None)}; expected (T,2)"
-            )
-        valid.append(arr[:, :2])
-
-    # Handle unequal lengths (trim to minimum)
-    lengths = [h.shape[0] for h in valid]
+    # 1) 길이 진단
+    lengths = [arr.shape[0] for arr in runs_list]
     min_T = min(lengths)
     if len(set(lengths)) != 1:
-        print(f"[mean_std_over_runs] Warning: unequal run lengths {lengths}, trimming to {min_T}")
-    valid = [h[:min_T, :] for h in valid]
+        print(f"[warn] Histories have different lengths: {lengths} -> aligning to min_T={min_T}")
 
-    H = np.stack(valid, axis=0)   # (R,T,2)
-    mean = H.mean(axis=0)         # (T,2)
-    std = H.std(axis=0)           # (T,2)
-    return mean, std
+    # 2) 최소 길이에 맞춰 자르기
+    trimmed = [arr[:min_T] for arr in runs_list]
 
+    # 3) 스택 후 mean/std 계산
+    H = np.stack(trimmed, axis=0)  # shape: (R, min_T, 2)
+    return H.mean(axis=0), H.std(axis=0)
