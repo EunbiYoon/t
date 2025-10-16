@@ -40,6 +40,7 @@ def run_episode(env, policy, gamma=1.0, seed=None):
 
 
 
+
 def estimate_J(policy: PolicyNet, N: int = 15) -> float:
     """Estimate expected return J(θ) by averaging N evaluation episodes."""
     returns: List[float] = []
@@ -66,6 +67,7 @@ def es_step(policy: PolicyNet, cfg: ESConfig) -> Tuple[float, float]:
     n = theta.size
 
     J_curr = estimate_J(policy, N=cfg.N_eval)
+    print(J_curr)
 
     # ✅ 전역 RNG (main.py에서 np.random.seed으로 고정됨)
     eps = np.random.standard_normal(size=(cfg.P, n)).astype(np.float32)
@@ -75,7 +77,6 @@ def es_step(policy: PolicyNet, cfg: ESConfig) -> Tuple[float, float]:
         theta_i = theta + cfg.sigma * eps[i]
         policy.set_policy_parameters(theta_i)
         J_i = estimate_J(policy, N=cfg.N_eval)
-        print(J_i)
         cand.append((float(J_i), eps[i].copy()))
 
     # Sort descending
@@ -120,5 +121,4 @@ def train_es(neurons_per_layer=(3, 2),
             hist[t, 1] = J_best
             bar.set_postfix({"J_curr": f"{J_curr:7.2f}", "J_best": f"{J_best:7.2f}"})
             bar.update(1)
-
     return hist, policy

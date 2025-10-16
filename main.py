@@ -8,7 +8,6 @@ import numpy as np
 from algorithm import ESConfig, train_es
 from utils import ensure_dir, timestamp, mean_std_over_runs
 
-
 def run_experiment(
     name: str,
     cfg: ESConfig,
@@ -17,56 +16,49 @@ def run_experiment(
     outdir: str | None = None,
     save: bool = True,
     progress: bool = True,
+    save_style: str = "compact",   # "compact" | "full"
 ):
     """
-    Run the ES training multiple times and (optionally) save results.
+    Run the ES training multiple times and optionally save results.
 
-    Parameters
-    ----------
-    name : str
-        A label for this experiment (used as a filename prefix).
-    cfg : ESConfig
-        Evolution Strategies (ES) hyperparameters.
-    neurons : tuple[int, ...]
-        Hidden layer sizes for PolicyNet (e.g., (3, 2)).
-    runs : int
-        Number of independent repetitions to average over.
-    outdir : str | None
-        Output directory to save results. If None, skip saving.
-    save : bool
-        If True, save raw runs and mean/std arrays to disk.
-    progress : bool
-        If True, show a tqdm progress bar over repeated runs.
-
-    Returns
-    -------
-    runs_list : list[np.ndarray]
-        A list of histories, each of shape (T, 2) where columns are [J_curr, J_best].
-    mean : np.ndarray
-        Mean learning curve over runs, shape (T, 2).
-    std : np.ndarray
-        Std learning curve over runs, shape (T, 2).
+    save_style='compact': save only (run.npy, mean.npy, std.npy)
+                          run.npy = [J_curr sequence ... , J_best_final]
+                          mean/std = single scalar each (final J_curr stats)
+    save_style='full'   : save full per-iteration curves (mean.npy (T,2), std.npy (T,2))
     """
     runs_list = []
     if progress:
         from tqdm import trange
         for _ in trange(runs, desc=f"{name}", dynamic_ncols=True):
             hist, _ = train_es(neurons_per_layer=neurons, cfg=cfg)
-            runs_list.append(hist)
+            runs_list.append(np.asarray(hist))
     else:
         for _ in range(runs):
             hist, _ = train_es(neurons_per_layer=neurons, cfg=cfg)
-            runs_list.append(hist)
+            runs_list.append(np.asarray(hist))
 
+    # ---- Compute mean/std curves ----
     mean, std = mean_std_over_runs(runs_list)
 
-    if save and outdir is not None:
-        ensure_dir(outdir)
-        np.savez(os.path.join(outdir, f"{name}_runs.npz"), *runs_list)
-        np.save(os.path.join(outdir, f"{name}_mean.npy"), mean)
-        np.save(os.path.join(outdir, f"{name}_std.npy"), std)
+    # ---- Save results ----
+    ensure_dir(outdir)
+    # 1️⃣ run.npy : J_curr sequence + final J_best
+    np.save(os.path.join(outdir, f"{name}_run.npy"), runs_list)
+
+    # 2️⃣ mean.npy / std.npy : final J_curr scalar stats
+    finals = np.array([h[-1, 0] for h in runs_list], dtype=float)
+    mean_final = np.array(finals.mean())
+    std_final = np.array(finals.std())
+    np.save(os.path.join(outdir, f"{name}_mean.npy"), mean_final)
+    np.save(os.path.join(outdir, f"{name}_std.npy"), std_final)
+
+    print(f"[run_experiment] Saved compact files:")
+    print(f" - {name}_run.npy  shape={runs_list}")
+    print(f" - {name}_mean.npy scalar={mean_final}")
+    print(f" - {name}_std.npy  scalar={std_final}\n")
 
     return runs_list, mean, std
+
 
 
 # ---------------------------
