@@ -76,7 +76,6 @@ def es_step(policy: PolicyNet, cfg: ESConfig) -> Tuple[float, float]:
         theta_i = theta + cfg.sigma * eps[i]
         policy.set_policy_parameters(theta_i)
         J_i = estimate_J(policy, N=cfg.N_eval)
-        print(J_i)
         cand.append((float(J_i), eps[i].copy()))
 
     # Sort descending

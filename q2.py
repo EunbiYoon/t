@@ -1,8 +1,5 @@
-# q1.py
-# Part 2 — Q1: Hyperparameter Study (Compute first, plot later)
-# Stage 1: run all ES experiments and save .npy
-# Stage 2: load all mean/std results and plot them together
-# Shows both outer (config) and inner (iteration) progress bars.
+# q2.py
+# Part 2 — Q2: Run 15 times with best hyperparameter
 
 import os
 import numpy as np
@@ -13,7 +10,7 @@ from tqdm import tqdm
 
 from algorithm import ESConfig
 from utils import (
-    ensure_dir, timestamp, mean_std_over_runs
+    ensure_dir, timestamp
 )
 from main import (
     run_experiment
@@ -24,7 +21,7 @@ from main import (
 # ===============================================================
 OUTDIR_BASE = "outputs"
 NEURONS = (3, 2)
-RUNS_PER_CONFIG = 5 #5
+RUNS_PER_CONFIG = 15 #5
 ITERS = 30 #40
 N_EVAL = 15 #15
 K = 5
@@ -33,26 +30,18 @@ K = 5
 # Configurations (P, sigma, alpha) to test
 # ===============================================================
 CONFIGS = [
-    ("P40_s0.10_a0.10", ESConfig(P=40, K=K, sigma=0.10, alpha=0.10,
-                                 N_eval=N_EVAL, iters=ITERS)),
-    ("P50_s0.20_a0.10", ESConfig(P=50, K=K, sigma=0.20, alpha=0.10,
-                                 N_eval=N_EVAL, iters=ITERS)),
-    ("P50_s0.25_a0.05", ESConfig(P=50, K=K, sigma=0.25, alpha=0.05,
-                                 N_eval=N_EVAL, iters=ITERS)),
     ("P60_s0.25_a0.5", ESConfig(P=60, K=K, sigma=0.25, alpha=0.5,
-                                 N_eval=N_EVAL, iters=ITERS)),
-    ("P50_s0.30_a0.10", ESConfig(P=50, K=K, sigma=0.30, alpha=0.10,
                                  N_eval=N_EVAL, iters=ITERS)),
 ]
 # ===============================================================
 
 
 def main():
-    outdir = os.path.join(OUTDIR_BASE, "q1_" + timestamp())
+    outdir = os.path.join(OUTDIR_BASE, "q2_" + timestamp())
     ensure_dir(outdir)
 
-    print(f"\n[Q1] Output directory: {outdir}")
-    print("[Q1] Stage 1 — Running experiments...\n")
+    print(f"\n[Q2] Output directory: {outdir}")
+    print("[Q2] Stage 2 — Running experiments...\n")
 
     # =====================
     # Stage 1: Run & Save
@@ -70,7 +59,7 @@ def main():
     # =====================
     # Stage 2: Plotting
     # =====================
-    print("[Q1] Stage 2 — Loading saved results and plotting...\n")
+    print("[Q2] Stage 2 — Loading saved results and plotting...\n")
 
     plt.figure(figsize=(8, 6))
     for name, _ in CONFIGS:
@@ -91,16 +80,16 @@ def main():
 
     plt.xlabel("ES Iteration")
     plt.ylabel("Return (higher is better)")
-    plt.title(f"Q1: Hyperparameter Study — {RUNS_PER_CONFIG} runs each")
+    plt.title(f"Q2: Best configuration — {RUNS_PER_CONFIG} runs each")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
 
-    out_png = os.path.join(outdir, "q1_study_curves.png")
+    out_png = os.path.join(outdir, "q2_best_curves.png")
     plt.savefig(out_png, dpi=150)
     plt.close()
 
-    print("\n✅ [Q1] All done.")
+    print("\n✅ [Q2] All done.")
     print(f"===> Final combined plot saved to: {out_png}")
     print(f"===> Directory: {outdir}\n")
 
