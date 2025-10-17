@@ -23,7 +23,6 @@ from main import (
 # User-adjustable constants
 # ===============================================================
 OUTDIR_BASE = "outputs"
-NEURONS = (3, 2)
 RUNS_PER_CONFIG = 5 #5
 ITERS = 30 #40
 N_EVAL = 15 #15
@@ -33,16 +32,23 @@ K = 5
 # Configurations (P, sigma, alpha) to test
 # ===============================================================
 CONFIGS = [
-    ("P40_s0.10_a0.10", ESConfig(P=40, K=K, sigma=0.10, alpha=0.10,
+    ("P40_s0.25_a0.50", ESConfig(P=40, K=K, sigma=0.25, alpha=0.5,
                                  N_eval=N_EVAL, iters=ITERS)),
-    ("P50_s0.20_a0.10", ESConfig(P=50, K=K, sigma=0.20, alpha=0.10,
+    ("P60_s0.25_a0.50", ESConfig(P=50, K=K, sigma=0.25, alpha=0.5,
                                  N_eval=N_EVAL, iters=ITERS)),
-    ("P50_s0.25_a0.05", ESConfig(P=50, K=K, sigma=0.25, alpha=0.05,
+    ("P50_s0.10_a0.25", ESConfig(P=50, K=K, sigma=0.1, alpha=0.25,
                                  N_eval=N_EVAL, iters=ITERS)),
-    ("P60_s0.25_a0.5", ESConfig(P=60, K=K, sigma=0.25, alpha=0.5,
+    ("P60_s0.25_a0.50", ESConfig(P=60, K=K, sigma=0.25, alpha=0.5,
                                  N_eval=N_EVAL, iters=ITERS)),
-    ("P50_s0.30_a0.10", ESConfig(P=50, K=K, sigma=0.30, alpha=0.10,
+    ("P50_s0.10_a0.10", ESConfig(P=60, K=K, sigma=0.1, alpha=0.1,
                                  N_eval=N_EVAL, iters=ITERS)),
+]
+NEURONS = [
+    (3, 2),
+    (4,),
+    (2,)
+    (3, 2),
+    (2, 4)
 ]
 # ===============================================================
 
@@ -58,12 +64,16 @@ def main():
     # Stage 1: Run & Save
     # =====================
     for name, cfg in CONFIGS:
-        print(f"▶ Starting config: {name} (P={cfg.P}, σ={cfg.sigma}, α={cfg.alpha})")
-        runs = []
+        neurons = NEURONS[count]
+        print(f"▶ Starting config: {name} (P={cfg.P}, σ={cfg.sigma}, α={cfg.alpha}, neurons={neurons})")
 
-        # tqdm: outer progress (5 runs)
-        for hist in tqdm(run_experiment(name, cfg, neurons=NEURONS, runs=RUNS_PER_CONFIG,outdir=outdir, save=True, progress=True)):
+        runs = []
+        for hist in tqdm(run_experiment(name, cfg, neurons=neurons,
+                                        runs=RUNS_PER_CONFIG,
+                                        outdir=outdir, save=True, progress=True)):
             runs.append(hist)
+        count += 1
+
 
     print("\n✅ Stage 1 complete: all results computed and saved.\n")
 
