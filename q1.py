@@ -24,7 +24,7 @@ from main import (
 # ===============================================================
 OUTDIR_BASE = "outputs"
 RUNS_PER_CONFIG = 5 #5
-ITERS = 30 #40
+ITERS = 30 #30
 N_EVAL = 15 #15
 K = 5
 
@@ -32,23 +32,11 @@ K = 5
 # Configurations (P, sigma, alpha) to test
 # ===============================================================
 CONFIGS = [
-    ("P40_s0.25_a0.50", ESConfig(P=40, K=K, sigma=0.25, alpha=0.5,
-                                 N_eval=N_EVAL, iters=ITERS)),
-    ("P60_s0.25_a0.50", ESConfig(P=50, K=K, sigma=0.25, alpha=0.5,
-                                 N_eval=N_EVAL, iters=ITERS)),
-    ("P50_s0.10_a0.25", ESConfig(P=50, K=K, sigma=0.1, alpha=0.25,
-                                 N_eval=N_EVAL, iters=ITERS)),
-    ("P60_s0.25_a0.50", ESConfig(P=60, K=K, sigma=0.25, alpha=0.5,
-                                 N_eval=N_EVAL, iters=ITERS)),
-    ("P50_s0.10_a0.10", ESConfig(P=60, K=K, sigma=0.1, alpha=0.1,
-                                 N_eval=N_EVAL, iters=ITERS)),
+    ("P60_s0.25_a0.50_4", ESConfig(P=60, K=K, sigma=0.5, alpha=0.25,
+                                 N_eval=N_EVAL, iters=ITERS))                               
 ]
 NEURONS = [
-    (3, 2),
-    (4,),
-    (2,),
-    (3, 2),
-    (2, 4)
+    (4,)
 ]
 # ===============================================================
 
@@ -63,6 +51,7 @@ def main():
     # =====================
     # Stage 1: Run & Save
     # =====================
+    count=0
     for name, cfg in CONFIGS:
         neurons = NEURONS[count]
         print(f"▶ Starting config: {name} (P={cfg.P}, σ={cfg.sigma}, α={cfg.alpha}, neurons={neurons})")

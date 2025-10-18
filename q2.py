@@ -22,7 +22,7 @@ from main import (
 OUTDIR_BASE = "outputs"
 NEURONS = (3, 2)
 RUNS_PER_CONFIG = 15 #5
-ITERS = 30 #40
+ITERS = 30 #30
 N_EVAL = 15 #15
 K = 5
 

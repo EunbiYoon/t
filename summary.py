@@ -4,7 +4,7 @@ import pandas as pd
 
 # === 1️⃣ 측정 폴더 경로만 지정 ===
 # 예: results_dir = "results"  또는 절대경로
-results_dir = "outputs/q1_2025-10-17_17-42-29"
+results_dir = "outputs/trick2"
 
 # === 2️⃣ 자동 탐색 ===
 records = []

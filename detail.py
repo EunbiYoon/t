@@ -5,10 +5,11 @@ import os
 # --------------------------------------------------
 # 🔧 폴더 경로 지정
 # --------------------------------------------------
-FOLDER = "outputs/q1_2025-10-17_17-42-29"
-RUN_FILE = os.path.join(FOLDER, "P60_s0.25_a0.5_runs.npz")
+FOLDER = "outputs/q1-2-6"
+RUN_FILE = "P60_s0.25_a0.50_runs.npz"
+OUTPUT_FILE="[detail]"+RUN_FILE+".csv"
 
-data = np.load(RUN_FILE)
+data = np.load(os.path.join(FOLDER, RUN_FILE))
 
 # --------------------------------------------------
 # NPZ 구조 표준화 (3D 형태로 변환)
@@ -57,6 +58,6 @@ df = df.round(0).astype(int)
 # --------------------------------------------------
 # CSV 저장
 # --------------------------------------------------
-output_csv = os.path.join(FOLDER, "runs_detail.csv")
+output_csv = os.path.join(FOLDER, OUTPUT_FILE)
 df.to_csv(output_csv)
 print(f"✅ Saved: {output_csv}")
