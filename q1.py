@@ -32,11 +32,23 @@ K = 5
 # Configurations (P, sigma, alpha) to test
 # ===============================================================
 CONFIGS = [
+    ("P60_s0.25_a0.50_2", ESConfig(P=60, K=K, sigma=0.5, alpha=0.25,
+                                 N_eval=N_EVAL, iters=ITERS)),
     ("P60_s0.25_a0.50_4", ESConfig(P=60, K=K, sigma=0.5, alpha=0.25,
-                                 N_eval=N_EVAL, iters=ITERS))                               
+                                 N_eval=N_EVAL, iters=ITERS)),   
+    ("P60_s0.25_a0.50_23", ESConfig(P=60, K=K, sigma=0.5, alpha=0.25,
+                                 N_eval=N_EVAL, iters=ITERS)),                            
+    ("P60_s0.25_a0.50_22", ESConfig(P=60, K=K, sigma=0.5, alpha=0.25,
+                                 N_eval=N_EVAL, iters=ITERS)),
+    ("P60_s0.25_a0.50_44", ESConfig(P=60, K=K, sigma=0.5, alpha=0.25,
+                                 N_eval=N_EVAL, iters=ITERS))                                
 ]
 NEURONS = [
-    (4,)
+    (2,),
+    (4,),
+    (2,3),
+    (2,2),
+    (4,4)
 ]
 # ===============================================================
 
